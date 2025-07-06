@@ -112,6 +112,15 @@ const clearAllFiles = () => {
   showToast('已清除所有圖片', 'success')
 }
 
+// 根據壓縮比返回對應的 CSS 類別
+const getCompressionClass = (ratio) => {
+  const numRatio = parseFloat(ratio.replace('%', ''))
+  if (numRatio >= 70) return 'excellent'
+  if (numRatio >= 50) return 'good'
+  if (numRatio >= 30) return 'fair'
+  return 'poor'
+}
+
 </script>
 
 <template>
@@ -156,21 +165,63 @@ const clearAllFiles = () => {
       </div>
     </div>
 
-    <div v-if="imageStore.selectedFiles.length > 0" class="mt-10 w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div v-if="imageStore.selectedFiles.length > 0" class="mt-10 w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <div v-for="(file, index) in imageStore.selectedFiles" :key="index" class="card bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 flex flex-col items-center transition-transform">
-        <img :src="file.preview" :alt="file.name" class="w-24 h-24 object-cover rounded-md mb-2 shadow" />
-        <p class="text-sm font-medium truncate w-full text-center">{{ file.name }}</p>
-        <p class="text-xs text-gray-600 dark:text-gray-400">原始大小: {{ file.size }}</p>
-        <div v-if="file.processed" class="mt-2 text-left w-full">
-          <p class="text-xs font-semibold">桌機版:</p>
-          <p class="text-xs">大小: {{ file.processed.desktop.size }}</p>
-          <p class="text-xs">壓縮比: {{ file.processed.desktop.ratio }}</p>
-          <p class="text-xs">處理時間: {{ file.processed.desktop.time }}</p>
-          <p class="text-xs font-semibold mt-1">手機版:</p>
-          <p class="text-xs">大小: {{ file.processed.mobile.size }}</p>
-          <p class="text-xs">壓縮比: {{ file.processed.mobile.ratio }}</p>
-          <p class="text-xs">處理時間: {{ file.processed.mobile.time }}</p>
+        <img :src="file.preview" :alt="file.name" class="w-24 h-24 object-cover rounded-md mb-3 shadow" />
+        <p class="text-sm font-medium truncate w-full text-center mb-2">{{ file.name }}</p>
+        <div class="w-full text-center mb-3">
+          <p class="text-xs text-gray-600 dark:text-gray-400">原始大小</p>
+          <p class="text-lg font-bold text-gray-800 dark:text-gray-200">{{ file.size }}</p>
         </div>
+
+        <div v-if="file.processed" class="w-full space-y-4">
+          <!-- 桌機版壓縮結果 -->
+          <div class="compression-result">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-semibold text-blue-600">🖥️ 桌機版</span>
+              <span :class="['compression-badge', getCompressionClass(file.processed.desktop.ratio)]">
+                {{ file.processed.desktop.ratio }}
+              </span>
+            </div>
+            <div class="size-comparison">
+              <div class="size-bar">
+                <div class="size-bar-original"></div>
+                <div
+                  class="size-bar-compressed"
+                  :style="{ width: (100 - parseFloat(file.processed.desktop.ratio.replace('%', ''))) + '%' }"
+                ></div>
+              </div>
+              <div class="size-text">
+                <span class="text-xs text-gray-500">壓縮後: {{ file.processed.desktop.size }}</span>
+                <span class="text-xs text-green-600 font-medium">節省 {{ file.processed.desktop.ratio }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 手機版壓縮結果 -->
+          <div class="compression-result">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-semibold text-purple-600">📱 手機版</span>
+              <span :class="['compression-badge', getCompressionClass(file.processed.mobile.ratio)]">
+                {{ file.processed.mobile.ratio }}
+              </span>
+            </div>
+            <div class="size-comparison">
+              <div class="size-bar">
+                <div class="size-bar-original"></div>
+                <div
+                  class="size-bar-compressed"
+                  :style="{ width: (100 - parseFloat(file.processed.mobile.ratio.replace('%', ''))) + '%' }"
+                ></div>
+              </div>
+              <div class="size-text">
+                <span class="text-xs text-gray-500">壓縮後: {{ file.processed.mobile.size }}</span>
+                <span class="text-xs text-green-600 font-medium">節省 {{ file.processed.mobile.ratio }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <p v-if="file.error" class="text-xs text-red-500 mt-2">錯誤: {{ file.error }}</p>
       </div>
     </div>
@@ -374,8 +425,100 @@ img {
 .gap-4 { gap: 1rem; }
 .gap-6 { gap: 1.5rem; }
 
+/* 壓縮結果視覺化樣式 */
+.compression-result {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.compression-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.compression-badge.excellent {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.compression-badge.good {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.compression-badge.fair {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.compression-badge.poor {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.size-comparison {
+  width: 100%;
+}
+
+.size-bar {
+  position: relative;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.size-bar-original {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  border-radius: 4px;
+}
+
+.size-bar-compressed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #34d399 0%, #10b981 100%);
+  border-radius: 4px;
+  transition: width 0.6s ease-in-out;
+}
+
+.size-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.size-text span {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* 響應式調整 */
 @media (max-width: 640px) {
   .card { padding: 1rem 0.5rem; }
   .dropzone { max-width: 98vw; }
+  .compression-result { padding: 8px; }
+  .size-text { flex-direction: column; align-items: flex-start; }
 }
 </style>
