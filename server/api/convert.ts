@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   const desktopImages: { name: string, buffer: Buffer }[] = []
   const mobileImages: { name: string, buffer: Buffer }[] = []
 
-  const tempDir = path.join(process.cwd(), 'temp', Date.now().toString())
+  const tempDir = path.join('/tmp', Date.now().toString())
   await fsp.mkdir(tempDir, { recursive: true })
 
   for (const item of formData) {
