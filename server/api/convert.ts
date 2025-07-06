@@ -2,7 +2,6 @@ import sharp from 'sharp'
 import { defineEventHandler, readMultipartFormData } from 'h3'
 import * as fs from 'fs'
 import { promises as fsp } from 'fs'
-import * as fsp from 'fs/promises'
 import path from 'path'
 import archiver from 'archiver'
 
