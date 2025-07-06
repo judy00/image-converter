@@ -16,7 +16,8 @@ export default defineEventHandler(async (event) => {
 
   // Basic security check: ensure the file is within the temp directory
   const absoluteFilePath = path.resolve(filePath)
-  const tempDir = path.resolve(process.cwd(), 'temp')
+  // In a serverless environment like Vercel, temporary files are stored in /tmp
+  const tempDir = path.resolve('/tmp')
 
   if (!absoluteFilePath.startsWith(tempDir)) {
     throw createError({
