@@ -107,6 +107,11 @@ const downloadFile = (url, filename) => {
   showToast('開始下載...')
 }
 
+const clearAllFiles = () => {
+  imageStore.clearFiles()
+  showToast('已清除所有圖片', 'success')
+}
+
 </script>
 
 <template>
@@ -192,6 +197,12 @@ const downloadFile = (url, filename) => {
         @click="downloadFile(imageStore.mobileZipUrl, 'mobile_images.zip')"
       >
         下載所有手機版圖片 (ZIP)
+      </button>
+      <button
+        class="button red"
+        @click="clearAllFiles"
+      >
+        清除所有圖片
       </button>
     </div>
   </div>
@@ -298,6 +309,15 @@ img {
 }
 .button.green:active:not(:disabled) {
   background: #007a5e;
+}
+.button.red {
+  background: #e53935;
+}
+.button.red:hover:not(:disabled) {
+  background: #c62828;
+}
+.button.red:active:not(:disabled) {
+  background: #b71c1c;
 }
 
 .spinner {
